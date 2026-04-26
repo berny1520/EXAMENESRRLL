@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Control - Exámenes Ocupacionales</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="assets/logo_xtreme.png" alt="XTREME Mining Ltda." onerror="this.style.display='none';document.getElementById('brandFallback').style.display='block'">
+      <div class="brandFallback" id="brandFallback">XTREME Mining Ltda.</div>
+    </div>
+
+    <nav class="nav">
+      <button class="navBtn active" data-view="dashboard"><span class="icon">🏠</span> Dashboard</button>
+      <button class="navBtn" data-view="usuarios"><span class="icon">👤</span> Usuarios / Exámenes</button>
+      <button class="navBtn" data-view="vencimientos"><span class="icon">🔔</span> Vencimientos</button>
+      <button class="navBtn" data-view="alertas"><span class="icon">⚠️</span> Alertas <span class="alertBadge" id="badgeAlerts">0</span></button>
+      <button class="navBtn" data-view="reportes"><span class="icon">📄</span> Reportes</button>
+      <button class="navBtn" data-view="dashboard"><span class="icon">⬇</span> Exportar Datos</button>
+      <button class="navBtn" data-view="dashboard"><span class="icon">⚙</span> Configuración</button>
+      <button class="navBtn" data-view="dashboard"><span class="icon">❔</span> Ayuda</button>
+    </nav>
+
+    <div class="sidePromo">
+      <div class="photo"></div>
+      <div class="txt">
+        <div class="logoMini">XTREME</div>
+        <div>Mining Ltda.</div>
+        <div class="desc">Seguridad y Salud<br>Nuestro Compromiso</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="headLeft">
+        <div class="burger">☰</div>
+        <div class="headText">
+          <h1>Panel de Control - Exámenes Ocupacionales</h1>
+          <p id="systemName">Sistema de Alertas y Control de Vencimientos</p>
+        </div>
+      </div>
+      <div class="userBox">
+        <div class="t1">Administrador</div>
+        <div class="t2">Administrador del Sistema</div>
+      </div>
+      <div class="dateBox">
+        <div class="t1">Fecha de corte</div>
+        <div class="t2" id="todayDate"></div>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="kpis">
+        <div class="kpi red">
+          <div class="label">CRÍTICOS (VENCIDOS)</div>
+          <div class="value" id="kpiVencidos">0</div>
+          <div class="sub">Requieren atención inmediata</div>
+          <div class="bar"><span data-bar="kpiVencidos"></span></div>
+          <div class="ring">⚠</div>
+        </div>
+        <div class="kpi orange">
+          <div class="label">POR VENCER (≤ 30 DÍAS)</div>
+          <div class="value" id="kpiPorVencer">0</div>
+          <div class="sub">Próximos a vencer</div>
+          <div class="bar"><span data-bar="kpiPorVencer"></span></div>
+          <div class="ring">🕒</div>
+        </div>
+        <div class="kpi green">
+          <div class="label">AL DÍA</div>
+          <div class="value" id="kpiAlDia">0</div>
+          <div class="sub">Exámenes vigentes</div>
+          <div class="bar"><span data-bar="kpiAlDia"></span></div>
+          <div class="ring">🛡</div>
+        </div>
+        <div class="kpi blue">
+          <div class="label">SIN FECHA</div>
+          <div class="value" id="kpiSinFecha">0</div>
+          <div class="sub">Sin información</div>
+          <div class="bar"><span data-bar="kpiSinFecha"></span></div>
+          <div class="ring">?</div>
+        </div>
+        <div class="kpi dark">
+          <div class="label">TOTAL USUARIOS</div>
+          <div class="value" id="kpiTotal">0</div>
+          <div class="sub">En sistema</div>
+          <div class="bar"><span data-bar="kpiTotal"></span></div>
+          <div class="ring">👥</div>
+        </div>
+      </section>
+
+      <section class="gridCharts">
+        <div class="panel">
+          <h3>DISTRIBUCIÓN POR ESTADO</h3>
+          <div class="chartBox"><canvas id="chartEstado" style="width:100%;height:100%"></canvas></div>
+          <div class="legend" id="legendEstado"></div>
+        </div>
+
+        <div class="panel">
+          <h3>PRÓXIMOS VENCIMIENTOS <span class="sub">(PRÓXIMOS 30 DÍAS)</span></h3>
+          <div class="chartBox"><canvas id="chartVencimientos" style="width:100%;height:100%"></canvas></div>
+        </div>
+
+        <div class="panel">
+          <h3>DISTRIBUCIÓN POR MUTUAL</h3>
+          <div class="chartBox"><canvas id="chartMutual" style="width:100%;height:100%"></canvas></div>
+          <div class="legend" id="legendMutual"></div>
+        </div>
+
+        <div class="panel alertBoard">
+          <h3>ALERTAS ACTIVAS</h3>
+          <div class="aRow"><span>🔴 Críticas (Vencidas)</span><span class="alertPill" style="background:#ff4d57" id="alertCrit">0</span></div>
+          <div class="aRow"><span>🟠 Por vencer (≤ 30 días)</span><span class="alertPill" style="background:#ff961f" id="alertSoon">0</span></div>
+          <div class="aRow"><span>🔵 Sin fecha</span><span class="alertPill" style="background:#4f8cff" id="alertNoDate">0</span></div>
+          <button class="btnLine" onclick="document.querySelector('[data-view=alertas]').click()">Ver todas las alertas</button>
+        </div>
+      </section>
+
+      <section class="filtersWrap">
+        <h3>FILTROS DE BÚSQUEDA</h3>
+        <div class="filtersGrid">
+          <div class="field">
+            <label>Buscar</label>
+            <input id="filter-search" placeholder="Buscar por nombre, RUT o código...">
+          </div>
+          <div class="field">
+            <label>Cargo</label>
+            <select id="filter-cargo" data-placeholder="Todos los cargos"></select>
+          </div>
+          <div class="field">
+            <label>Mutual</label>
+            <select id="filter-mutual" data-placeholder="Todas las mutuales"></select>
+          </div>
+          <div class="field">
+            <label>Estado</label>
+            <select id="filter-estado" data-placeholder="Todos los estados"></select>
+          </div>
+          <div class="field">
+            <label>Prioridad</label>
+            <select id="filter-prioridad" data-placeholder="Todas las prioridades"></select>
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <button class="btnDanger" id="clearFilters">Limpiar filtros</button>
+          </div>
+        </div>
+        <div class="examSelectRow field">
+          <label>Tipo de examen</label>
+          <select id="filter-examen" data-placeholder="Todos los exámenes"></select>
+        </div>
+      </section>
+
+      <section class="tabPane active" id="view-dashboard">
+        <div class="tableCard">
+          <div class="tableHead">
+            <h3>USUARIOS Y CONTROL DE EXÁMENES</h3>
+            <button class="btnRed" id="exportCsv">Exportar CSV</button>
+          </div>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>RUT</th>
+                  <th>Nombre Completo</th>
+                  <th>Cargo</th>
+                  <th>Mutual</th>
+                  <th>Examen Próximo a Vencer</th>
+                  <th>Vencimiento</th>
+                  <th>Días Restantes</th>
+                  <th>Estado</th>
+                  <th>Prioridad</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="dashboardTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="tabPane" id="view-usuarios">
+        <div class="tableCard">
+          <div class="tableHead">
+            <h3>USUARIOS / EXÁMENES</h3>
+            <div class="muted" id="usersCount"></div>
+          </div>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>RUT</th>
+                  <th>Nombre Completo</th>
+                  <th>Cargo</th>
+                  <th>Mutual</th>
+                  <th>Examen Próximo a Vencer</th>
+                  <th>Vencimiento</th>
+                  <th>Días Restantes</th>
+                  <th>Estado</th>
+                  <th>Prioridad</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="tabPane" id="view-vencimientos">
+        <div class="tableCard">
+          <div class="tableHead"><h3>VENCIMIENTOS DETALLADOS</h3></div>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>RUT</th>
+                  <th>Nombre</th>
+                  <th>Cargo</th>
+                  <th>Mutual</th>
+                  <th>Examen</th>
+                  <th>Vencimiento</th>
+                  <th>Días</th>
+                  <th>Estado</th>
+                  <th>Prioridad</th>
+                </tr>
+              </thead>
+              <tbody id="vencTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="tabPane" id="view-alertas">
+        <div class="panel">
+          <h3>ALERTAS ACTIVAS</h3>
+          <div id="alertsList"></div>
+        </div>
+      </section>
+
+      <section class="tabPane" id="view-reportes">
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+            <h3>REPORTE GERENCIAL</h3>
+            <button class="btnRed" id="exportReport">Exportar reporte CSV</button>
+          </div>
+          <div id="reportSummary"></div>
+
+          <div class="tableCard" style="margin-top:14px">
+            <div class="tableHead"><h3>RESUMEN POR CARGO</h3></div>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cargo</th>
+                    <th>Total</th>
+                    <th>Vencidos</th>
+                    <th>Por vencer</th>
+                    <th>Al día</th>
+                    <th>% Cumplimiento</th>
+                  </tr>
+                </thead>
+                <tbody id="reportTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">Versión 2.0 | Seguridad y Salud en el Trabajo</div>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="detailModal">
+  <div class="modalCard">
+    <div class="modalTop">
+      <div id="modalUserTitle"></div>
+      <button class="closeBtn" id="closeModal">Cerrar</button>
+    </div>
+    <div id="modalMeta" class="metaGrid"></div>
+    <div style="margin-top:18px">
+      <h3 style="margin:0 0 10px 0">Exámenes del usuario</h3>
+      <div id="modalExams" class="examGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
